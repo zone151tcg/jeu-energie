@@ -64,7 +64,44 @@
   .gear svg{width:20px; height:20px; stroke:var(--muted);}
   .gear:active{transform:scale(.94);}
 
+  #main-row{flex:1 1 auto; display:flex; min-height:0;}
   #grid-view{flex:1 1 auto; display:flex; flex-direction:column; min-height:0;}
+
+  #history-panel{
+    width:0; overflow:hidden; flex:0 0 auto; border-left:1px solid var(--line);
+    background:var(--panel); display:flex; flex-direction:column; transition:width .25s ease;
+  }
+  #history-panel.open{width:240px;}
+  .history-head{padding:14px 16px 10px; border-bottom:1px solid var(--line); flex:0 0 auto;}
+  .history-head h4{margin:0 0 6px; font-family:'Rajdhani',sans-serif; font-size:15px; letter-spacing:.04em;}
+  .history-tally{display:flex; flex-wrap:wrap; gap:5px;}
+  .history-tally span{font-size:10.5px; padding:3px 7px; border-radius:8px; background:var(--panel-2); color:var(--muted);}
+  .history-list{flex:1; overflow-y:auto; padding:8px 10px;}
+  .history-item{
+    display:flex; align-items:center; gap:8px; padding:8px 8px; border-radius:9px; margin-bottom:4px;
+    background:var(--panel-2); font-size:12.5px;
+  }
+  .history-dot{width:10px; height:10px; border-radius:3px; flex:0 0 auto;}
+  .history-item .hn{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:600;}
+  .history-item .he{color:var(--muted); font-size:11px;}
+  .history-empty{color:var(--muted); font-size:12.5px; text-align:center; padding:20px 10px;}
+  .history-clear{margin:8px 10px 12px; padding:8px; font-size:12px;}
+
+  #assign-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:40; display:none;
+    align-items:center; justify-content:center; padding:24px;
+  }
+  #assign-overlay.open{display:flex;}
+  #assign-box{
+    width:100%; max-width:380px; background:var(--panel); border:1px solid var(--line); border-radius:18px;
+    padding:22px 20px; text-align:center;
+  }
+  #assign-box .chip{display:inline-block; padding:6px 16px; border-radius:20px; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:16px; margin-bottom:14px;}
+  #assign-box input{
+    width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+    padding:13px 14px; border-radius:10px; font-size:16px; text-align:center; margin-bottom:14px;
+  }
+  #assign-box .btn-row{justify-content:center;}
   .grid-title{
     text-align:center; padding:10px 12px 2px; font-family:'Rajdhani',sans-serif;
     font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted);
@@ -223,11 +260,15 @@
         <div class="serie-name" id="hdr-serie">Zone 151 TCG · Jeu de l'Énergie</div>
       </div>
     </div>
+    <div class="gear" id="btn-history" aria-label="Suivi des tirages" style="margin-right:8px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"></path><path d="M3.05 13A9 9 0 106 5.3L3 8"></path><path d="M12 7v5l4 2"></path></svg>
+    </div>
     <div class="gear" id="btn-settings" aria-label="Réglages">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09c0 .68.4 1.28 1 1.51.62.25 1.34.12 1.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06c-.45.48-.58 1.2-.33 1.82.23.6.83 1 1.51 1H21a2 2 0 010 4h-.09c-.68 0-1.28.4-1.51 1z"></path></svg>
     </div>
   </header>
 
+  <div id="main-row">
   <div id="grid-view">
     <div class="config-prompt" id="config-prompt" style="display:none;">
       <h2>Alimente ta base de cartes</h2>
@@ -238,6 +279,27 @@
       <div class="grid-title" id="grid-title">Tirage en cours — touche une énergie</div>
       <div class="energy-grid" id="energy-grid"></div>
     </template>
+  </div>
+
+  <aside id="history-panel">
+    <div class="history-head">
+      <h4>Suivi des tirages</h4>
+      <div class="history-tally" id="history-tally"></div>
+    </div>
+    <div class="history-list" id="history-list"></div>
+    <button class="btn danger history-clear" id="btn-clear-history">Vider l'historique</button>
+  </aside>
+  </div>
+
+  <div id="assign-overlay">
+    <div id="assign-box">
+      <div class="chip" id="assign-chip"></div>
+      <div><input type="text" id="assign-input" placeholder="Nom / pseudo de l'acheteur" autocomplete="off"></div>
+      <div class="btn-row">
+        <button class="btn" id="assign-cancel">Annuler</button>
+        <button class="btn primary" id="assign-confirm">Valider le tirage</button>
+      </div>
+    </div>
   </div>
 
   <div id="gallery-view">
@@ -327,7 +389,8 @@ const ENERGIES = [
   {key:"objet", label:"Objet", cls:"t-objet"},
 ];
 
-let db = { sets:{}, active:null };
+let db = { sets:{}, active:null, history:{} };
+let historyOpen = true;
 
 function normalizeStr(s){
   return (s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
@@ -338,7 +401,8 @@ ENERGIES.forEach(e => ENERGY_KEY_BY_NORM[normalizeStr(e.label)] = e.key);
 function loadDb(){
   try{
     const raw = localStorage.getItem("jde-db");
-    if(raw) db = JSON.parse(raw);
+    if(raw) db = Object.assign({ sets:{}, active:null, history:{} }, JSON.parse(raw));
+    if(!db.history) db.history = {};
   }catch(e){}
 }
 function saveDb(){
@@ -412,8 +476,92 @@ function energyColorVar(e){
 function onTileTap(tileEl, energy){
   tileEl.classList.add("burst");
   setTimeout(()=>tileEl.classList.remove("burst"), 600);
-  openGallery(energy);
+  openAssignPrompt(energy);
 }
+
+function openAssignPrompt(energy){
+  const overlay = document.getElementById("assign-overlay");
+  const chip = document.getElementById("assign-chip");
+  chip.textContent = energy.label;
+  chip.style.background = energyColorVar(energy) + "33";
+  chip.style.color = "var(--text)";
+  chip.style.border = "1px solid " + energyColorVar(energy);
+  const input = document.getElementById("assign-input");
+  input.value = "";
+  overlay.classList.add("open");
+  setTimeout(()=>input.focus(), 50);
+
+  const confirmBtn = document.getElementById("assign-confirm");
+  const cancelBtn = document.getElementById("assign-cancel");
+
+  const onConfirm = ()=>{
+    const buyer = input.value.trim() || "Sans nom";
+    recordAssignment(buyer, energy);
+    cleanup();
+    openGallery(energy);
+  };
+  const onCancel = ()=>{ cleanup(); };
+  const onKey = (ev)=>{ if(ev.key === "Enter") onConfirm(); };
+  function cleanup(){
+    overlay.classList.remove("open");
+    confirmBtn.removeEventListener("click", onConfirm);
+    cancelBtn.removeEventListener("click", onCancel);
+    input.removeEventListener("keydown", onKey);
+  }
+  confirmBtn.addEventListener("click", onConfirm);
+  cancelBtn.addEventListener("click", onCancel);
+  input.addEventListener("keydown", onKey);
+}
+
+function recordAssignment(buyer, energy){
+  if(!db.active) return;
+  if(!db.history[db.active]) db.history[db.active] = [];
+  db.history[db.active].push({ buyer, energyKey: energy.key, ts: Date.now() });
+  saveDb();
+  renderHistoryPanel();
+}
+
+function currentHistory(){
+  if(!db.active || !db.history[db.active]) return [];
+  return db.history[db.active];
+}
+
+function renderHistoryPanel(){
+  const list = document.getElementById("history-list");
+  const tally = document.getElementById("history-tally");
+  const entries = currentHistory();
+
+  const counts = {};
+  ENERGIES.forEach(e=>counts[e.key]=0);
+  entries.forEach(h=>{ if(counts[h.energyKey]!==undefined) counts[h.energyKey]++; });
+  tally.innerHTML = ENERGIES.filter(e=>counts[e.key]>0).map(e=>`<span>${e.label} ${counts[e.key]}</span>`).join("") || "";
+
+  if(!entries.length){
+    list.innerHTML = `<div class="history-empty">Aucun tirage assigné pour l'instant.</div>`;
+    return;
+  }
+  list.innerHTML = "";
+  entries.slice().reverse().forEach((h, i)=>{
+    const e = ENERGIES.find(en=>en.key===h.energyKey);
+    const row = document.createElement("div");
+    row.className = "history-item";
+    row.innerHTML = `<span class="history-dot" style="background:${energyColorVar(e)};"></span><span class="hn">${h.buyer}</span><span class="he">${e ? e.label : ""}</span>`;
+    list.appendChild(row);
+  });
+}
+
+document.getElementById("btn-history").addEventListener("click", ()=>{
+  historyOpen = !historyOpen;
+  document.getElementById("history-panel").classList.toggle("open", historyOpen);
+});
+
+document.getElementById("btn-clear-history").addEventListener("click", ()=>{
+  if(!db.active) return;
+  if(!confirm("Vider l'historique des tirages de cette série ?")) return;
+  db.history[db.active] = [];
+  saveDb();
+  renderHistoryPanel();
+});
 
 function openGallery(energy){
   const view = document.getElementById("gallery-view");
@@ -480,6 +628,7 @@ document.getElementById("btn-close-settings").addEventListener("click", ()=>{
   closeSettings();
   renderHeader();
   renderGridView();
+  renderHistoryPanel();
 });
 
 function renderSetList(){
@@ -502,6 +651,7 @@ function renderSetList(){
       saveDb();
       document.getElementById("input-serie").value = name;
       renderSetList();
+      renderHistoryPanel();
     });
     el.appendChild(chip);
   });
@@ -529,6 +679,7 @@ document.getElementById("btn-import-replace").addEventListener("click", ()=>{
   db.active = name;
   saveDb();
   renderSetList();
+  renderHistoryPanel();
   showImportSummary(cards, name, totalLines - cards.length);
 });
 
@@ -542,6 +693,7 @@ document.getElementById("btn-import-append").addEventListener("click", ()=>{
   db.active = name;
   saveDb();
   renderSetList();
+  renderHistoryPanel();
   showImportSummary(db.sets[name], name, totalLines - newCards.length);
 });
 
@@ -601,6 +753,8 @@ document.getElementById("btn-import-backup").addEventListener("click", ()=>{
 loadDb();
 renderHeader();
 renderGridView();
+document.getElementById("history-panel").classList.add("open");
+renderHistoryPanel();
 </script>
 </body>
 </html>
