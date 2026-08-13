@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Jeu de l'Énergie — Zone 151 TCG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0b10;
+    --bg-glow: radial-gradient(circle at 50% -10%, rgba(255,255,255,0.06), transparent 55%);
+    --panel:#12141c;
+    --panel-2:#181b26;
+    --line:rgba(255,255,255,0.08);
+    --text:#f4f5f8;
+    --muted:#8b90a3;
+    --gold:#e8c15a;
+
+    --feu:#ff5a3c;      --feu-d:#7a1f10;
+    --eau:#2f8fe0;      --eau-d:#0d3560;
+    --plante:#3fbf5e;   --plante-d:#0f4a1f;
+    --electrik:#f2cf1f; --electrik-d:#5c4d05;
+    --psy:#c94ecf;      --psy-d:#4d1652;
+    --combat:#c9772f;   --combat-d:#4a2607;
+    --acier:#9fb2c4;    --acier-d:#33404c;
+    --obscur:#5a4b9e;   --obscur-d:#1c1533;
+    --dragon:#d9a441;   --dragon-d:#4a3308;
+    --incolore:#d8d5c9; --incolore-d:#4a4840;
+    --dresseur:#2bb3a3; --dresseur-d:#0c4038;
+    --objet:#6f7cf0;    --objet-d:#232a63;
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--bg); background-image:var(--bg-glow);
+    color:var(--text); font-family:'Inter',sans-serif;
+    overflow:hidden; user-select:none;
+  }
+  #app{height:100vh; height:100dvh; display:flex; flex-direction:column; position:relative;}
+
+  /* ---------- Header ---------- */
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 20px; border-bottom:1px solid var(--line);
+    flex:0 0 auto; z-index:20; background:rgba(10,11,16,0.6); backdrop-filter:blur(8px);
+  }
+  .brand{display:flex; align-items:center; gap:12px; min-width:0;}
+  .brand-mark{
+    width:34px; height:34px; border-radius:9px; flex:0 0 auto;
+    background:linear-gradient(135deg,var(--gold),#8a6a1f);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Rajdhani',sans-serif; font-weight:700; color:#1a1200; font-size:16px;
+  }
+  .brand-text{min-width:0;}
+  .brand-text .set-name{font-family:'Rajdhani',sans-serif; font-weight:600; font-size:15px; letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .brand-text .serie-name{font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .gear{
+    width:40px; height:40px; border-radius:12px; border:1px solid var(--line);
+    background:var(--panel); display:flex; align-items:center; justify-content:center;
+    cursor:pointer; flex:0 0 auto;
+  }
+  .gear svg{width:20px; height:20px; stroke:var(--muted);}
+  .gear:active{transform:scale(.94);}
+
+  /* ---------- Grid view ---------- */
+  #grid-view{flex:1 1 auto; display:flex; flex-direction:column; min-height:0;}
+  .grid-title{
+    text-align:center; padding:10px 12px 2px; font-family:'Rajdhani',sans-serif;
+    font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted);
+  }
+  .energy-grid{
+    flex:1; display:grid; gap:12px; padding:12px 16px 18px;
+    grid-template-columns:repeat(4, 1fr); grid-template-rows:repeat(3, 1fr);
+  }
+  @media (orientation:portrait){
+    .energy-grid{grid-template-columns:repeat(3, 1fr); grid-template-rows:repeat(4, 1fr);}
+  }
+  .tile{
+    position:relative; border-radius:18px; border:1px solid rgba(255,255,255,0.10);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+    cursor:pointer; overflow:hidden; -webkit-user-select:none;
+    transition:transform .12s ease;
+  }
+  .tile::before{
+    content:""; position:absolute; inset:0;
+    background:radial-gradient(circle at 30% 20%, rgba(255,255,255,0.20), transparent 60%);
+    pointer-events:none;
+  }
+  .tile:active{transform:scale(.96);}
+  .tile .ico{width:30%; max-width:44px; opacity:.95;}
+  .tile .label{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:clamp(14px,2.6vw,22px); letter-spacing:.02em; text-shadow:0 2px 6px rgba(0,0,0,.35);}
+  .tile.burst::after{
+    content:""; position:absolute; inset:-40%; border-radius:50%;
+    background:radial-gradient(circle, rgba(255,255,255,0.9), rgba(255,255,255,0) 60%);
+    animation:burst .55s ease-out forwards;
+  }
+  @keyframes burst{0%{opacity:.9; transform:scale(0);} 100%{opacity:0; transform:scale(2.2);}}
+
+  .t-feu{background:linear-gradient(160deg,var(--feu),var(--feu-d));}
+  .t-eau{background:linear-gradient(160deg,var(--eau),var(--eau-d));}
+  .t-plante{background:linear-gradient(160deg,var(--plante),var(--plante-d));}
+  .t-electrik{background:linear-gradient(160deg,var(--electrik),var(--electrik-d)); color:#1a1500;}
+  .t-psy{background:linear-gradient(160deg,var(--psy),var(--psy-d));}
+  .t-combat{background:linear-gradient(160deg,var(--combat),var(--combat-d));}
+  .t-acier{background:linear-gradient(160deg,var(--acier),var(--acier-d)); color:#10151a;}
+  .t-obscur{background:linear-gradient(160deg,var(--obscur),var(--obscur-d));}
+  .t-dragon{background:linear-gradient(160deg,var(--dragon),var(--dragon-d));}
+  .t-incolore{background:linear-gradient(160deg,var(--incolore),var(--incolore-d)); color:#181818;}
+  .t-dresseur{background:linear-gradient(160deg,var(--dresseur),var(--dresseur-d));}
+  .t-objet{background:linear-gradient(160deg,var(--objet),var(--objet-d));}
+
+  /* ---------- Gallery view ---------- */
+  #gallery-view{
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    background:var(--bg); background-image:var(--bg-glow);
+    transform:translateY(100%); transition:transform .32s cubic-bezier(.2,.8,.2,1);
+    z-index:15;
+  }
+  #gallery-view.open{transform:translateY(0);}
+  .gallery-header{
+    flex:0 0 auto; padding:16px 18px; display:flex; align-items:center; gap:14px;
+    border-bottom:1px solid var(--line);
+  }
+  .back-btn{
+    display:flex; align-items:center; gap:8px; border:1px solid var(--line); background:var(--panel);
+    color:var(--text); font-family:'Rajdhani',sans-serif; font-weight:600; font-size:15px;
+    padding:10px 16px; border-radius:12px; cursor:pointer;
+  }
+  .back-btn:active{transform:scale(.96);}
+  .gallery-title{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:20px; display:flex; align-items:center; gap:10px;}
+  .gallery-chip{width:16px; height:16px; border-radius:5px;}
+  .gallery-count{margin-left:auto; font-size:12px; color:var(--muted); font-family:'Rajdhani',sans-serif; letter-spacing:.05em;}
+  .gallery-body{flex:1; overflow-y:auto; padding:16px 18px 30px;}
+  .card-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px;}
+  .card-item{
+    background:var(--panel); border:1px solid var(--line); border-radius:12px; overflow:hidden;
+    display:flex; flex-direction:column; cursor:pointer;
+  }
+  .card-item img{width:100%; display:block; aspect-ratio:5/7; object-fit:cover; background:var(--panel-2);}
+  .card-item .cn{padding:8px 9px; font-size:12px; color:var(--text); font-weight:500; line-height:1.25;}
+  .empty-state, .loading-state{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+    height:100%; color:var(--muted); text-align:center; padding:40px;
+  }
+  .empty-state svg, .loading-state .spinner{width:40px; height:40px; stroke:var(--muted);}
+  .spinner{border:3px solid rgba(255,255,255,0.12); border-top-color:var(--gold); border-radius:50%; animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ---------- Lightbox ---------- */
+  #lightbox{
+    position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:60; display:none;
+    align-items:center; justify-content:center; padding:30px;
+  }
+  #lightbox.open{display:flex;}
+  #lightbox img{max-width:90%; max-height:90%; border-radius:14px; box-shadow:0 20px 60px rgba(0,0,0,.6);}
+
+  /* ---------- Config prompt ---------- */
+  .config-prompt{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:16px; text-align:center; padding:30px;
+  }
+  .config-prompt h2{font-family:'Rajdhani',sans-serif; font-size:22px; margin:0;}
+  .config-prompt p{color:var(--muted); max-width:380px; margin:0; font-size:14px;}
+  .cta{
+    font-family:'Rajdhani',sans-serif; font-weight:700; font-size:16px; letter-spacing:.03em;
+    background:var(--gold); color:#1a1200; border:none; padding:12px 26px; border-radius:12px; cursor:pointer;
+  }
+
+  /* ---------- Settings modal ---------- */
+  #settings-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:50; display:none;
+    align-items:flex-end; justify-content:center;
+  }
+  #settings-overlay.open{display:flex;}
+  #settings{
+    width:100%; max-width:640px; max-height:88vh; background:var(--panel);
+    border-radius:20px 20px 0 0; border:1px solid var(--line); border-bottom:none;
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+  .settings-header{padding:16px 20px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between;}
+  .settings-header h3{margin:0; font-family:'Rajdhani',sans-serif; font-size:18px;}
+  .settings-close{border:none; background:none; color:var(--muted); font-size:20px; cursor:pointer; padding:4px 8px;}
+  .settings-body{overflow-y:auto; padding:18px 20px 100px;}
+  .field{margin-bottom:20px;}
+  .field label{display:block; font-family:'Rajdhani',sans-serif; font-size:13px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-bottom:8px;}
+  .field input[type=text]{
+    width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+    padding:11px 13px; border-radius:10px; font-size:15px; font-family:'Inter',sans-serif;
+  }
+  .suggest-list{margin-top:6px; max-height:160px; overflow-y:auto; border-radius:10px; border:1px solid var(--line); display:none;}
+  .suggest-list.show{display:block;}
+  .suggest-item{padding:10px 13px; font-size:14px; cursor:pointer; background:var(--panel-2); border-bottom:1px solid var(--line);}
+  .suggest-item:last-child{border-bottom:none;}
+  .suggest-item:active{background:#232633;}
+  .set-list{display:flex; flex-wrap:wrap; gap:8px; margin-top:4px;}
+  .set-chip{
+    padding:8px 13px; border-radius:20px; border:1px solid var(--line); background:var(--panel-2);
+    font-size:13px; cursor:pointer;
+  }
+  .set-chip.active{background:var(--gold); color:#1a1200; border-color:var(--gold); font-weight:600;}
+  .checks{display:flex; flex-wrap:wrap; gap:8px;}
+  .check-pill{
+    padding:7px 12px; border-radius:20px; border:1px solid var(--line); background:var(--panel-2);
+    font-size:12.5px; cursor:pointer; color:var(--muted);
+  }
+  .check-pill.on{background:rgba(232,193,90,0.16); border-color:var(--gold); color:var(--gold); font-weight:600;}
+  .hint{font-size:12px; color:var(--muted); margin-top:6px; line-height:1.4;}
+  .settings-footer{
+    position:sticky; bottom:0; padding:14px 20px; background:var(--panel); border-top:1px solid var(--line);
+  }
+  .save-btn{
+    width:100%; padding:13px; border-radius:12px; border:none; background:var(--gold); color:#1a1200;
+    font-family:'Rajdhani',sans-serif; font-weight:700; font-size:16px; letter-spacing:.03em; cursor:pointer;
+  }
+  .subhead{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:14px; letter-spacing:.08em; text-transform:uppercase; color:var(--text); margin:26px 0 10px; padding-top:14px; border-top:1px solid var(--line);}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="brand">
+      <div class="brand-mark">151</div>
+      <div class="brand-text">
+        <div class="set-name" id="hdr-set">Aucun set configuré</div>
+        <div class="serie-name" id="hdr-serie">Zone 151 TCG · Jeu de l'Énergie</div>
+      </div>
+    </div>
+    <div class="gear" id="btn-settings" aria-label="Réglages">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09c0 .68.4 1.28 1 1.51.62.25 1.34.12 1.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06c-.45.48-.58 1.2-.33 1.82.23.6.83 1 1.51 1H21a2 2 0 010 4h-.09c-.68 0-1.28.4-1.51 1z"></path></svg>
+    </div>
+  </header>
+
+  <div id="grid-view">
+    <div class="config-prompt" id="config-prompt" style="display:none;">
+      <h2>Choisis une série pour commencer</h2>
+      <p>Ouvre les réglages pour sélectionner la série et le set sur lesquels tu ouvres tes boosters en live.</p>
+      <button class="cta" id="cta-open-settings">Ouvrir les réglages</button>
+    </div>
+    <template id="tpl-grid">
+      <div class="grid-title" id="grid-title">Tirage en cours — touche une énergie</div>
+      <div class="energy-grid" id="energy-grid"></div>
+    </template>
+  </div>
+
+  <div id="gallery-view">
+    <div class="gallery-header">
+      <button class="back-btn" id="btn-back">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+        Retour
+      </button>
+      <div class="gallery-title"><span class="gallery-chip" id="gallery-chip"></span><span id="gallery-label"></span></div>
+      <div class="gallery-count" id="gallery-count"></div>
+    </div>
+    <div class="gallery-body" id="gallery-body"></div>
+  </div>
+
+  <div id="lightbox"><img id="lightbox-img" src="" alt=""></div>
+
+  <div id="settings-overlay">
+    <div id="settings">
+      <div class="settings-header">
+        <h3>Réglages du live</h3>
+        <button class="settings-close" id="btn-close-settings">✕</button>
+      </div>
+      <div class="settings-body">
+
+        <div class="field">
+          <label>Série</label>
+          <input type="text" id="input-serie" placeholder="Rechercher une série (ex. Écarlate et Violet)" autocomplete="off">
+          <div class="suggest-list" id="serie-suggest"></div>
+        </div>
+
+        <div class="field" id="field-set" style="display:none;">
+          <label>Set</label>
+          <div class="set-list" id="set-list"></div>
+        </div>
+
+        <div class="field" id="field-rarity" style="display:none;">
+          <label>Raretés considérées comme « cartes spéciales » (EX / Full Art / AR / ALT…)</label>
+          <div class="checks" id="rarity-checks"></div>
+          <div class="hint">Coche les raretés à afficher quand une énergie est tirée. La liste vient directement de la base de cartes — adapte-la selon l'ère du set.</div>
+        </div>
+
+        <div id="field-trainer" style="display:none;">
+          <div class="subhead">Catégorie « Dresseur »</div>
+          <div class="checks" id="dresseur-checks"></div>
+          <div class="subhead">Catégorie « Objet »</div>
+          <div class="checks" id="objet-checks"></div>
+          <div class="hint">Répartis les types de cartes Dresseur entre les deux tirages possibles du jeu.</div>
+        </div>
+
+        <div class="field" id="field-status">
+          <div class="hint" id="status-text"></div>
+        </div>
+
+      </div>
+      <div class="settings-footer">
+        <button class="save-btn" id="btn-save">Enregistrer et fermer</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = "https://api.tcgdex.net/v2/fr";
+
+const ENERGIES = [
+  {key:"feu", label:"Feu", cls:"t-feu", cat:"elemental", type:"Feu"},
+  {key:"eau", label:"Eau", cls:"t-eau", cat:"elemental", type:"Eau"},
+  {key:"plante", label:"Plante", cls:"t-plante", cat:"elemental", type:"Plante"},
+  {key:"electrik", label:"Électrik", cls:"t-electrik", cat:"elemental", type:"Électrik"},
+  {key:"psy", label:"Psy", cls:"t-psy", cat:"elemental", type:"Psy"},
+  {key:"combat", label:"Combat", cls:"t-combat", cat:"elemental", type:"Combat"},
+  {key:"acier", label:"Acier", cls:"t-acier", cat:"elemental", type:"Acier"},
+  {key:"obscur", label:"Obscur", cls:"t-obscur", cat:"elemental", type:"Obscurité"},
+  {key:"dragon", label:"Dragon", cls:"t-dragon", cat:"elemental", type:"Dragon"},
+  {key:"incolore", label:"Incolore", cls:"t-incolore", cat:"elemental", type:"Incolore"},
+  {key:"dresseur", label:"Dresseur", cls:"t-dresseur", cat:"trainer-group", group:"dresseur"},
+  {key:"objet", label:"Objet", cls:"t-objet", cat:"trainer-group", group:"objet"},
+];
+
+let state = {
+  serieId:null, serieName:null,
+  setId:null, setName:null,
+  rarities:[], // selected rarity strings
+  dresseurTypes:[], objetTypes:[],
+};
+let cache = { series:null, rarities:null, trainerTypes:null, types:null, serieDetail:{} };
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem("jde-config");
+    if(raw) state = Object.assign(state, JSON.parse(raw));
+  }catch(e){}
+}
+function saveState(){
+  try{ localStorage.setItem("jde-config", JSON.stringify(state)); }catch(e){}
+}
+
+async function fetchJSON(url){
+  const res = await fetch(url);
+  if(!res.ok) throw new Error("HTTP "+res.status);
+  return res.json();
+}
+
+/* ---------------- Header / grid rendering ---------------- */
+function renderHeader(){
+  document.getElementById("hdr-set").textContent = state.setName || "Aucun set configuré";
+  document.getElementById("hdr-serie").textContent = state.serieName ? (state.serieName + " · Jeu de l'Énergie") : "Zone 151 TCG · Jeu de l'Énergie";
+}
+
+function renderGridView(){
+  const promptEl = document.getElementById("config-prompt");
+  const gridView = document.getElementById("grid-view");
+  gridView.querySelectorAll(".grid-title, .energy-grid").forEach(n=>n.remove());
+
+  if(!state.setId){
+    promptEl.style.display = "flex";
+    return;
+  }
+  promptEl.style.display = "none";
+  const tpl = document.getElementById("tpl-grid").content.cloneNode(true);
+  gridView.appendChild(tpl);
+  const grid = document.getElementById("energy-grid");
+  ENERGIES.forEach(e=>{
+    const tile = document.createElement("div");
+    tile.className = "tile " + e.cls;
+    tile.innerHTML = `<div class="label">${e.label}</div>`;
+    tile.addEventListener("click", ()=> onTileTap(tile, e));
+    grid.appendChild(tile);
+  });
+}
+
+/* ---------------- Tirage ---------------- */
+function energyColorVar(e){
+  const map = {feu:"--feu",eau:"--eau",plante:"--plante",electrik:"--electrik",psy:"--psy",combat:"--combat",acier:"--acier",obscur:"--obscur",dragon:"--dragon",incolore:"--incolore",dresseur:"--dresseur",objet:"--objet"};
+  return getComputedStyle(document.documentElement).getPropertyValue(map[e.key]).trim();
+}
+
+async function onTileTap(tileEl, energy){
+  tileEl.classList.add("burst");
+  setTimeout(()=>tileEl.classList.remove("burst"), 600);
+  openGallery(energy);
+}
+
+function buildRarityParam(){
+  if(!state.rarities || state.rarities.length===0) return null;
+  return state.rarities.map(encodeURIComponent).join("|");
+}
+
+async function openGallery(energy){
+  const view = document.getElementById("gallery-view");
+  const body = document.getElementById("gallery-body");
+  document.getElementById("gallery-chip").style.background = energyColorVar(energy);
+  document.getElementById("gallery-label").textContent = energy.label;
+  document.getElementById("gallery-count").textContent = "";
+  body.innerHTML = `<div class="loading-state"><div class="spinner"></div><div>Recherche des cartes ${energy.label}…</div></div>`;
+  view.classList.add("open");
+
+  try{
+    let url = `${API}/cards?set.id=eq:${encodeURIComponent(state.setId)}`;
+    const rarityParam = buildRarityParam();
+    if(rarityParam) url += `&rarity=eq:${rarityParam}`;
+
+    if(energy.cat === "elemental"){
+      url += `&category=eq:Pokemon&types=eq:${encodeURIComponent(energy.type)}`;
+    } else {
+      const list = energy.group === "dresseur" ? state.dresseurTypes : state.objetTypes;
+      url += `&category=eq:Trainer`;
+      if(list && list.length) url += `&trainerType=eq:${list.map(encodeURIComponent).join("|")}`;
+    }
+
+    const cards = await fetchJSON(url);
+    renderGalleryCards(cards, energy);
+  }catch(err){
+    body.innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      <div>Impossible de charger les cartes.<br>Vérifie la connexion internet.</div>
+    </div>`;
+  }
+}
+
+function renderGalleryCards(cards, energy){
+  const body = document.getElementById("gallery-body");
+  document.getElementById("gallery-count").textContent = cards.length + (cards.length>1 ? " cartes" : " carte");
+  if(!cards.length){
+    body.innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 21l-4.35-4.35"></path><circle cx="10" cy="10" r="7"></circle></svg>
+      <div>Aucune carte trouvée pour <b>${energy.label}</b> avec les raretés sélectionnées.<br>Vérifie les réglages de raretés pour ce set.</div>
+    </div>`;
+    return;
+  }
+  const grid = document.createElement("div");
+  grid.className = "card-grid";
+  cards.forEach(c=>{
+    const item = document.createElement("div");
+    item.className = "card-item";
+    const imgUrl = c.image ? c.image + "/high.webp" : "";
+    item.innerHTML = `<img src="${imgUrl}" loading="lazy" alt="${c.name||''}"><div class="cn">${c.name||''}</div>`;
+    item.addEventListener("click", ()=>{
+      if(!imgUrl) return;
+      document.getElementById("lightbox-img").src = imgUrl;
+      document.getElementById("lightbox").classList.add("open");
+    });
+    grid.appendChild(item);
+  });
+  body.innerHTML = "";
+  body.appendChild(grid);
+}
+
+document.getElementById("btn-back").addEventListener("click", ()=>{
+  document.getElementById("gallery-view").classList.remove("open");
+});
+document.getElementById("lightbox").addEventListener("click", ()=>{
+  document.getElementById("lightbox").classList.remove("open");
+});
+
+/* ---------------- Settings ---------------- */
+function openSettings(){
+  document.getElementById("settings-overlay").classList.add("open");
+  ensureLookups();
+  if(state.serieName) document.getElementById("input-serie").value = state.serieName;
+  if(state.serieId) renderSetList(state.serieId, true);
+  renderRarityChecks();
+  renderTrainerChecks();
+}
+function closeSettings(){
+  document.getElementById("settings-overlay").classList.remove("open");
+}
+document.getElementById("btn-settings").addEventListener("click", openSettings);
+document.getElementById("cta-open-settings").addEventListener("click", openSettings);
+document.getElementById("btn-close-settings").addEventListener("click", closeSettings);
+document.getElementById("btn-save").addEventListener("click", ()=>{
+  saveState();
+  renderHeader();
+  renderGridView();
+  closeSettings();
+});
+
+const statusText = (msg)=>{ document.getElementById("status-text").textContent = msg || ""; };
+
+async function ensureLookups(){
+  try{
+    if(!cache.series){ statusText("Chargement des séries…"); cache.series = await fetchJSON(`${API}/series`); }
+    if(!cache.rarities){ cache.rarities = await fetchJSON(`${API}/rarities`); }
+    if(!cache.trainerTypes){ cache.trainerTypes = await fetchJSON(`${API}/trainertypes`); }
+    statusText("");
+  }catch(e){
+    statusText("Connexion à la base de cartes impossible. Vérifie le Wi-Fi.");
+  }
+}
+
+const serieInput = document.getElementById("input-serie");
+const serieSuggest = document.getElementById("serie-suggest");
+serieInput.addEventListener("input", ()=>{
+  const q = serieInput.value.trim().toLowerCase();
+  if(!cache.series || q.length<1){ serieSuggest.classList.remove("show"); return; }
+  const matches = cache.series.filter(s=>s.name.toLowerCase().includes(q)).slice(0,8);
+  serieSuggest.innerHTML = matches.map(s=>`<div class="suggest-item" data-id="${s.id}" data-name="${s.name}">${s.name}</div>`).join("");
+  serieSuggest.classList.toggle("show", matches.length>0);
+});
+serieSuggest.addEventListener("click", (ev)=>{
+  const item = ev.target.closest(".suggest-item");
+  if(!item) return;
+  serieInput.value = item.dataset.name;
+  serieSuggest.classList.remove("show");
+  state.serieId = item.dataset.id;
+  state.serieName = item.dataset.name;
+  state.setId = null; state.setName = null;
+  renderSetList(state.serieId, false);
+});
+
+async function renderSetList(serieId, keepSelection){
+  const field = document.getElementById("field-set");
+  field.style.display = "block";
+  const listEl = document.getElementById("set-list");
+  listEl.innerHTML = "Chargement…";
+  try{
+    if(!cache.serieDetail[serieId]) cache.serieDetail[serieId] = await fetchJSON(`${API}/series/${serieId}`);
+    const sets = cache.serieDetail[serieId].sets || [];
+    listEl.innerHTML = "";
+    sets.forEach(s=>{
+      const chip = document.createElement("div");
+      chip.className = "set-chip" + (keepSelection && state.setId===s.id ? " active" : "");
+      chip.textContent = s.name;
+      chip.addEventListener("click", ()=>{
+        listEl.querySelectorAll(".set-chip").forEach(c=>c.classList.remove("active"));
+        chip.classList.add("active");
+        state.setId = s.id;
+        state.setName = s.name;
+        document.getElementById("field-rarity").style.display = "block";
+        document.getElementById("field-trainer").style.display = "block";
+      });
+      listEl.appendChild(chip);
+    });
+    if(sets.length){
+      document.getElementById("field-rarity").style.display = "block";
+      document.getElementById("field-trainer").style.display = "block";
+    }
+  }catch(e){
+    listEl.innerHTML = "Impossible de charger les sets de cette série.";
+  }
+}
+
+function renderRarityChecks(){
+  const el = document.getElementById("rarity-checks");
+  if(!cache.rarities){ el.innerHTML = ""; return; }
+  el.innerHTML = "";
+  cache.rarities.forEach(r=>{
+    const pill = document.createElement("div");
+    const on = state.rarities.includes(r);
+    pill.className = "check-pill" + (on ? " on" : "");
+    pill.textContent = r;
+    pill.addEventListener("click", ()=>{
+      const idx = state.rarities.indexOf(r);
+      if(idx>=0){ state.rarities.splice(idx,1); pill.classList.remove("on"); }
+      else { state.rarities.push(r); pill.classList.add("on"); }
+    });
+    el.appendChild(pill);
+  });
+}
+
+function renderTrainerChecks(){
+  if(!cache.trainerTypes) return;
+  const dEl = document.getElementById("dresseur-checks");
+  const oEl = document.getElementById("objet-checks");
+  dEl.innerHTML = ""; oEl.innerHTML = "";
+
+  // Default heuristic on first load: anything containing "objet" goes to Objet, rest to Dresseur.
+  if(state.dresseurTypes.length===0 && state.objetTypes.length===0){
+    cache.trainerTypes.forEach(t=>{
+      if(/objet|item/i.test(t)) state.objetTypes.push(t);
+      else state.dresseurTypes.push(t);
+    });
+  }
+
+  cache.trainerTypes.forEach(t=>{
+    const mk = (list, container)=>{
+      const pill = document.createElement("div");
+      const on = list.includes(t);
+      pill.className = "check-pill" + (on ? " on" : "");
+      pill.textContent = t;
+      pill.addEventListener("click", ()=>{
+        const idx = list.indexOf(t);
+        if(idx>=0){ list.splice(idx,1); pill.classList.remove("on"); }
+        else { list.push(t); pill.classList.add("on"); }
+      });
+      container.appendChild(pill);
+    };
+    mk(state.dresseurTypes, dEl);
+    mk(state.objetTypes, oEl);
+  });
+}
+
+/* ---------------- Init ---------------- */
+loadState();
+renderHeader();
+renderGridView();
+</script>
+</body>
+</html>
