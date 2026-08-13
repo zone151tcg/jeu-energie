@@ -41,7 +41,6 @@
   }
   #app{height:100vh; height:100dvh; display:flex; flex-direction:column; position:relative;}
 
-  /* ---------- Header ---------- */
   header{
     display:flex; align-items:center; justify-content:space-between;
     padding:14px 20px; border-bottom:1px solid var(--line);
@@ -65,7 +64,6 @@
   .gear svg{width:20px; height:20px; stroke:var(--muted);}
   .gear:active{transform:scale(.94);}
 
-  /* ---------- Grid view ---------- */
   #grid-view{flex:1 1 auto; display:flex; flex-direction:column; min-height:0;}
   .grid-title{
     text-align:center; padding:10px 12px 2px; font-family:'Rajdhani',sans-serif;
@@ -90,8 +88,8 @@
     pointer-events:none;
   }
   .tile:active{transform:scale(.96);}
-  .tile .ico{width:30%; max-width:44px; opacity:.95;}
   .tile .label{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:clamp(14px,2.6vw,22px); letter-spacing:.02em; text-shadow:0 2px 6px rgba(0,0,0,.35);}
+  .tile .count{font-size:11px; opacity:.85; font-weight:600;}
   .tile.burst::after{
     content:""; position:absolute; inset:-40%; border-radius:50%;
     background:radial-gradient(circle, rgba(255,255,255,0.9), rgba(255,255,255,0) 60%);
@@ -112,7 +110,6 @@
   .t-dresseur{background:linear-gradient(160deg,var(--dresseur),var(--dresseur-d));}
   .t-objet{background:linear-gradient(160deg,var(--objet),var(--objet-d));}
 
-  /* ---------- Gallery view ---------- */
   #gallery-view{
     position:absolute; inset:0; display:flex; flex-direction:column;
     background:var(--bg); background-image:var(--bg-glow);
@@ -140,16 +137,15 @@
     display:flex; flex-direction:column; cursor:pointer;
   }
   .card-item img{width:100%; display:block; aspect-ratio:5/7; object-fit:cover; background:var(--panel-2);}
+  .card-item .ph{width:100%; aspect-ratio:5/7; display:flex; align-items:center; justify-content:center; text-align:center; padding:10px; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:14px;}
   .card-item .cn{padding:8px 9px; font-size:12px; color:var(--text); font-weight:500; line-height:1.25;}
+  .card-item .cr{padding:0 9px 8px; font-size:10.5px; color:var(--muted); font-weight:600; letter-spacing:.03em; text-transform:uppercase;}
   .empty-state, .loading-state{
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
     height:100%; color:var(--muted); text-align:center; padding:40px;
   }
-  .empty-state svg, .loading-state .spinner{width:40px; height:40px; stroke:var(--muted);}
-  .spinner{border:3px solid rgba(255,255,255,0.12); border-top-color:var(--gold); border-radius:50%; animation:spin .8s linear infinite;}
-  @keyframes spin{to{transform:rotate(360deg);}}
+  .empty-state svg{width:40px; height:40px; stroke:var(--muted);}
 
-  /* ---------- Lightbox ---------- */
   #lightbox{
     position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:60; display:none;
     align-items:center; justify-content:center; padding:30px;
@@ -157,7 +153,6 @@
   #lightbox.open{display:flex;}
   #lightbox img{max-width:90%; max-height:90%; border-radius:14px; box-shadow:0 20px 60px rgba(0,0,0,.6);}
 
-  /* ---------- Config prompt ---------- */
   .config-prompt{
     flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:16px; text-align:center; padding:30px;
@@ -169,7 +164,6 @@
     background:var(--gold); color:#1a1200; border:none; padding:12px 26px; border-radius:12px; cursor:pointer;
   }
 
-  /* ---------- Settings modal ---------- */
   #settings-overlay{
     position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:50; display:none;
     align-items:flex-end; justify-content:center;
@@ -183,37 +177,37 @@
   .settings-header{padding:16px 20px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between;}
   .settings-header h3{margin:0; font-family:'Rajdhani',sans-serif; font-size:18px;}
   .settings-close{border:none; background:none; color:var(--muted); font-size:20px; cursor:pointer; padding:4px 8px;}
-  .settings-body{overflow-y:auto; padding:18px 20px 100px;}
+  .settings-body{overflow-y:auto; padding:18px 20px 30px;}
   .field{margin-bottom:20px;}
   .field label{display:block; font-family:'Rajdhani',sans-serif; font-size:13px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-bottom:8px;}
   .field input[type=text]{
     width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text);
     padding:11px 13px; border-radius:10px; font-size:15px; font-family:'Inter',sans-serif;
   }
-  .suggest-list{margin-top:6px; max-height:160px; overflow-y:auto; border-radius:10px; border:1px solid var(--line); display:none;}
-  .suggest-list.show{display:block;}
-  .suggest-item{padding:10px 13px; font-size:14px; cursor:pointer; background:var(--panel-2); border-bottom:1px solid var(--line);}
-  .suggest-item:last-child{border-bottom:none;}
-  .suggest-item:active{background:#232633;}
+  .field textarea{
+    width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+    padding:11px 13px; border-radius:10px; font-size:13.5px; font-family:'SFMono-Regular',Menlo,monospace;
+    min-height:130px; resize:vertical; line-height:1.5;
+  }
   .set-list{display:flex; flex-wrap:wrap; gap:8px; margin-top:4px;}
   .set-chip{
+    display:flex; align-items:center; gap:6px;
     padding:8px 13px; border-radius:20px; border:1px solid var(--line); background:var(--panel-2);
     font-size:13px; cursor:pointer;
   }
   .set-chip.active{background:var(--gold); color:#1a1200; border-color:var(--gold); font-weight:600;}
-  .checks{display:flex; flex-wrap:wrap; gap:8px;}
-  .check-pill{
-    padding:7px 12px; border-radius:20px; border:1px solid var(--line); background:var(--panel-2);
-    font-size:12.5px; cursor:pointer; color:var(--muted);
+  .set-chip .del{opacity:.6; font-weight:700;}
+  .btn-row{display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;}
+  .btn{
+    padding:10px 16px; border-radius:10px; border:1px solid var(--line); background:var(--panel-2);
+    color:var(--text); font-family:'Rajdhani',sans-serif; font-weight:600; font-size:14px; cursor:pointer;
   }
-  .check-pill.on{background:rgba(232,193,90,0.16); border-color:var(--gold); color:var(--gold); font-weight:600;}
-  .hint{font-size:12px; color:var(--muted); margin-top:6px; line-height:1.4;}
-  .settings-footer{
-    position:sticky; bottom:0; padding:14px 20px; background:var(--panel); border-top:1px solid var(--line);
-  }
-  .save-btn{
-    width:100%; padding:13px; border-radius:12px; border:none; background:var(--gold); color:#1a1200;
-    font-family:'Rajdhani',sans-serif; font-weight:700; font-size:16px; letter-spacing:.03em; cursor:pointer;
+  .btn.primary{background:var(--gold); color:#1a1200; border-color:var(--gold);}
+  .btn.danger{color:#ff8a7a; border-color:rgba(255,90,60,0.35);}
+  .hint{font-size:12px; color:var(--muted); margin-top:8px; line-height:1.45;}
+  .summary{
+    margin-top:12px; padding:10px 12px; background:var(--panel-2); border-radius:10px;
+    font-size:12.5px; color:var(--text); line-height:1.6;
   }
   .subhead{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:14px; letter-spacing:.08em; text-transform:uppercase; color:var(--text); margin:26px 0 10px; padding-top:14px; border-top:1px solid var(--line);}
 </style>
@@ -225,7 +219,7 @@
     <div class="brand">
       <div class="brand-mark">151</div>
       <div class="brand-text">
-        <div class="set-name" id="hdr-set">Aucun set configuré</div>
+        <div class="set-name" id="hdr-set">Aucune série configurée</div>
         <div class="serie-name" id="hdr-serie">Zone 151 TCG · Jeu de l'Énergie</div>
       </div>
     </div>
@@ -236,8 +230,8 @@
 
   <div id="grid-view">
     <div class="config-prompt" id="config-prompt" style="display:none;">
-      <h2>Choisis une série pour commencer</h2>
-      <p>Ouvre les réglages pour sélectionner la série et le set sur lesquels tu ouvres tes boosters en live.</p>
+      <h2>Alimente ta base de cartes</h2>
+      <p>Ouvre les réglages pour créer une série et coller ta liste de cartes (nom, énergie, rareté).</p>
       <button class="cta" id="cta-open-settings">Ouvrir les réglages</button>
     </div>
     <template id="tpl-grid">
@@ -263,43 +257,54 @@
   <div id="settings-overlay">
     <div id="settings">
       <div class="settings-header">
-        <h3>Réglages du live</h3>
+        <h3>Base de cartes</h3>
         <button class="settings-close" id="btn-close-settings">✕</button>
       </div>
       <div class="settings-body">
 
         <div class="field">
-          <label>Série</label>
-          <input type="text" id="input-serie" placeholder="Rechercher une série (ex. Écarlate et Violet)" autocomplete="off">
-          <div class="suggest-list" id="serie-suggest"></div>
-        </div>
-
-        <div class="field" id="field-set" style="display:none;">
-          <label>Set</label>
+          <label>Séries enregistrées</label>
           <div class="set-list" id="set-list"></div>
+          <div class="hint">Touche une série pour l'activer. Touche le × pour la supprimer.</div>
         </div>
 
-        <div class="field" id="field-rarity" style="display:none;">
-          <label>Raretés considérées comme « cartes spéciales » (EX / Full Art / AR / ALT…)</label>
-          <div class="checks" id="rarity-checks"></div>
-          <div class="hint">Coche les raretés à afficher quand une énergie est tirée. La liste vient directement de la base de cartes — adapte-la selon l'ère du set.</div>
+        <div class="field">
+          <label>Nom de la nouvelle série (ou série active)</label>
+          <input type="text" id="input-serie" placeholder="ex. ME02 Flammes Fantasmagoriques">
         </div>
 
-        <div id="field-trainer" style="display:none;">
-          <div class="subhead">Catégorie « Dresseur »</div>
-          <div class="checks" id="dresseur-checks"></div>
-          <div class="subhead">Catégorie « Objet »</div>
-          <div class="checks" id="objet-checks"></div>
-          <div class="hint">Répartis les types de cartes Dresseur entre les deux tirages possibles du jeu.</div>
+        <div class="field">
+          <label>Coller la liste de cartes</label>
+          <textarea id="input-cards" placeholder="Une carte par ligne, séparée par des points-virgules :
+Dracaufeu ex;Feu;EX
+Miraidon ex;Électrik;EX;https://exemple.com/image.jpg
+Prof. Chen;Dresseur;Full Art
+
+Format : Nom;Énergie;Rareté;Image (l'image est optionnelle)
+Énergies valables : Feu, Eau, Plante, Électrik, Psy, Combat, Acier, Obscur, Dragon, Incolore, Dresseur, Objet"></textarea>
+          <div class="btn-row">
+            <button class="btn primary" id="btn-import-replace">Importer (remplace la série)</button>
+            <button class="btn" id="btn-import-append">Ajouter à la série</button>
+          </div>
+          <div class="btn-row">
+            <button class="btn danger" id="btn-clear">Vider cette série</button>
+          </div>
+          <div class="summary" id="import-summary"></div>
         </div>
 
-        <div class="field" id="field-status">
-          <div class="hint" id="status-text"></div>
+        <div class="field">
+          <label>Sauvegarde / transfert vers un autre appareil</label>
+          <textarea id="backup-text" placeholder="Clique sur « Générer l'export » pour remplir cette zone, puis copie le texte pour le sauvegarder (Notes, Mail...). Sur un autre appareil, colle-le ici et clique sur « Importer »." style="min-height:100px;"></textarea>
+          <div class="btn-row">
+            <button class="btn" id="btn-export">Générer l'export</button>
+            <button class="btn" id="btn-copy">Copier</button>
+          </div>
+          <div class="btn-row">
+            <button class="btn primary" id="btn-import-backup">Importer ce texte (fusionne avec l'existant)</button>
+          </div>
+          <div class="hint" id="backup-status"></div>
         </div>
 
-      </div>
-      <div class="settings-footer">
-        <button class="save-btn" id="btn-save">Enregistrer et fermer</button>
       </div>
     </div>
   </div>
@@ -307,51 +312,71 @@
 </div>
 
 <script>
-const API = "https://api.tcgdex.net/v2/fr";
-
 const ENERGIES = [
-  {key:"feu", label:"Feu", cls:"t-feu", cat:"elemental", type:"Feu"},
-  {key:"eau", label:"Eau", cls:"t-eau", cat:"elemental", type:"Eau"},
-  {key:"plante", label:"Plante", cls:"t-plante", cat:"elemental", type:"Plante"},
-  {key:"electrik", label:"Électrik", cls:"t-electrik", cat:"elemental", type:"Électrik"},
-  {key:"psy", label:"Psy", cls:"t-psy", cat:"elemental", type:"Psy"},
-  {key:"combat", label:"Combat", cls:"t-combat", cat:"elemental", type:"Combat"},
-  {key:"acier", label:"Acier", cls:"t-acier", cat:"elemental", type:"Acier"},
-  {key:"obscur", label:"Obscur", cls:"t-obscur", cat:"elemental", type:"Obscurité"},
-  {key:"dragon", label:"Dragon", cls:"t-dragon", cat:"elemental", type:"Dragon"},
-  {key:"incolore", label:"Incolore", cls:"t-incolore", cat:"elemental", type:"Incolore"},
-  {key:"dresseur", label:"Dresseur", cls:"t-dresseur", cat:"trainer-group", group:"dresseur"},
-  {key:"objet", label:"Objet", cls:"t-objet", cat:"trainer-group", group:"objet"},
+  {key:"feu", label:"Feu", cls:"t-feu"},
+  {key:"eau", label:"Eau", cls:"t-eau"},
+  {key:"plante", label:"Plante", cls:"t-plante"},
+  {key:"electrik", label:"Électrik", cls:"t-electrik"},
+  {key:"psy", label:"Psy", cls:"t-psy"},
+  {key:"combat", label:"Combat", cls:"t-combat"},
+  {key:"acier", label:"Acier", cls:"t-acier"},
+  {key:"obscur", label:"Obscur", cls:"t-obscur"},
+  {key:"dragon", label:"Dragon", cls:"t-dragon"},
+  {key:"incolore", label:"Incolore", cls:"t-incolore"},
+  {key:"dresseur", label:"Dresseur", cls:"t-dresseur"},
+  {key:"objet", label:"Objet", cls:"t-objet"},
 ];
 
-let state = {
-  serieId:null, serieName:null,
-  setId:null, setName:null,
-  rarities:[], // selected rarity strings
-  dresseurTypes:[], objetTypes:[],
-};
-let cache = { series:null, rarities:null, trainerTypes:null, types:null, serieDetail:{} };
+let db = { sets:{}, active:null };
 
-function loadState(){
+function normalizeStr(s){
+  return (s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
+}
+const ENERGY_KEY_BY_NORM = {};
+ENERGIES.forEach(e => ENERGY_KEY_BY_NORM[normalizeStr(e.label)] = e.key);
+
+function loadDb(){
   try{
-    const raw = localStorage.getItem("jde-config");
-    if(raw) state = Object.assign(state, JSON.parse(raw));
+    const raw = localStorage.getItem("jde-db");
+    if(raw) db = JSON.parse(raw);
   }catch(e){}
 }
-function saveState(){
-  try{ localStorage.setItem("jde-config", JSON.stringify(state)); }catch(e){}
+function saveDb(){
+  try{ localStorage.setItem("jde-db", JSON.stringify(db)); }catch(e){}
 }
 
-async function fetchJSON(url){
-  const res = await fetch(url);
-  if(!res.ok) throw new Error("HTTP "+res.status);
-  return res.json();
+function parseCardLines(text){
+  const cards = [];
+  text.split("\n").forEach(line=>{
+    const trimmed = line.trim();
+    if(!trimmed) return;
+    const parts = trimmed.split(";").map(p=>p.trim());
+    if(parts.length < 2) return;
+    const [name, energyRaw, rarity, image] = parts;
+    const key = ENERGY_KEY_BY_NORM[normalizeStr(energyRaw)];
+    if(!key) return; // ligne ignorée si l'énergie ne correspond à aucune des 12 catégories
+    cards.push({ name, energyKey:key, rarity: rarity||"", image: image||"" });
+  });
+  return cards;
 }
 
-/* ---------------- Header / grid rendering ---------------- */
+function currentCards(){
+  if(!db.active || !db.sets[db.active]) return [];
+  return db.sets[db.active];
+}
+
+/* ---------------- Header / grid ---------------- */
 function renderHeader(){
-  document.getElementById("hdr-set").textContent = state.setName || "Aucun set configuré";
-  document.getElementById("hdr-serie").textContent = state.serieName ? (state.serieName + " · Jeu de l'Énergie") : "Zone 151 TCG · Jeu de l'Énergie";
+  document.getElementById("hdr-set").textContent = db.active || "Aucune série configurée";
+  const n = currentCards().length;
+  document.getElementById("hdr-serie").textContent = db.active ? `${n} carte${n>1?"s":""} · Jeu de l'Énergie` : "Zone 151 TCG · Jeu de l'Énergie";
+}
+
+function countByEnergy(cards){
+  const counts = {};
+  ENERGIES.forEach(e=>counts[e.key]=0);
+  cards.forEach(c=>{ if(counts[c.energyKey]!==undefined) counts[c.energyKey]++; });
+  return counts;
 }
 
 function renderGridView(){
@@ -359,7 +384,8 @@ function renderGridView(){
   const gridView = document.getElementById("grid-view");
   gridView.querySelectorAll(".grid-title, .energy-grid").forEach(n=>n.remove());
 
-  if(!state.setId){
+  const cards = currentCards();
+  if(!db.active || cards.length===0){
     promptEl.style.display = "flex";
     return;
   }
@@ -367,10 +393,11 @@ function renderGridView(){
   const tpl = document.getElementById("tpl-grid").content.cloneNode(true);
   gridView.appendChild(tpl);
   const grid = document.getElementById("energy-grid");
+  const counts = countByEnergy(cards);
   ENERGIES.forEach(e=>{
     const tile = document.createElement("div");
     tile.className = "tile " + e.cls;
-    tile.innerHTML = `<div class="label">${e.label}</div>`;
+    tile.innerHTML = `<div class="label">${e.label}</div><div class="count">${counts[e.key]} carte${counts[e.key]>1?"s":""}</div>`;
     tile.addEventListener("click", ()=> onTileTap(tile, e));
     grid.appendChild(tile);
   });
@@ -382,56 +409,28 @@ function energyColorVar(e){
   return getComputedStyle(document.documentElement).getPropertyValue(map[e.key]).trim();
 }
 
-async function onTileTap(tileEl, energy){
+function onTileTap(tileEl, energy){
   tileEl.classList.add("burst");
   setTimeout(()=>tileEl.classList.remove("burst"), 600);
   openGallery(energy);
 }
 
-function buildRarityParam(){
-  if(!state.rarities || state.rarities.length===0) return null;
-  return state.rarities.map(encodeURIComponent).join("|");
-}
-
-async function openGallery(energy){
+function openGallery(energy){
   const view = document.getElementById("gallery-view");
-  const body = document.getElementById("gallery-body");
   document.getElementById("gallery-chip").style.background = energyColorVar(energy);
   document.getElementById("gallery-label").textContent = energy.label;
-  document.getElementById("gallery-count").textContent = "";
-  body.innerHTML = `<div class="loading-state"><div class="spinner"></div><div>Recherche des cartes ${energy.label}…</div></div>`;
+  const matches = currentCards().filter(c=>c.energyKey===energy.key);
+  document.getElementById("gallery-count").textContent = matches.length + (matches.length>1 ? " cartes" : " carte");
+  renderGalleryCards(matches, energy);
   view.classList.add("open");
-
-  try{
-    let url = `${API}/cards?set.id=eq:${encodeURIComponent(state.setId)}`;
-    const rarityParam = buildRarityParam();
-    if(rarityParam) url += `&rarity=eq:${rarityParam}`;
-
-    if(energy.cat === "elemental"){
-      url += `&category=eq:Pokemon&types=eq:${encodeURIComponent(energy.type)}`;
-    } else {
-      const list = energy.group === "dresseur" ? state.dresseurTypes : state.objetTypes;
-      url += `&category=eq:Trainer`;
-      if(list && list.length) url += `&trainerType=eq:${list.map(encodeURIComponent).join("|")}`;
-    }
-
-    const cards = await fetchJSON(url);
-    renderGalleryCards(cards, energy);
-  }catch(err){
-    body.innerHTML = `<div class="empty-state">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-      <div>Impossible de charger les cartes.<br>Vérifie la connexion internet.</div>
-    </div>`;
-  }
 }
 
 function renderGalleryCards(cards, energy){
   const body = document.getElementById("gallery-body");
-  document.getElementById("gallery-count").textContent = cards.length + (cards.length>1 ? " cartes" : " carte");
   if(!cards.length){
     body.innerHTML = `<div class="empty-state">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 21l-4.35-4.35"></path><circle cx="10" cy="10" r="7"></circle></svg>
-      <div>Aucune carte trouvée pour <b>${energy.label}</b> avec les raretés sélectionnées.<br>Vérifie les réglages de raretés pour ce set.</div>
+      <div>Aucune carte enregistrée pour <b>${energy.label}</b> dans cette série.</div>
     </div>`;
     return;
   }
@@ -440,11 +439,15 @@ function renderGalleryCards(cards, energy){
   cards.forEach(c=>{
     const item = document.createElement("div");
     item.className = "card-item";
-    const imgUrl = c.image ? c.image + "/high.webp" : "";
-    item.innerHTML = `<img src="${imgUrl}" loading="lazy" alt="${c.name||''}"><div class="cn">${c.name||''}</div>`;
+    if(c.image){
+      item.innerHTML = `<img src="${c.image}" loading="lazy" alt="${c.name}">`;
+    } else {
+      item.innerHTML = `<div class="ph" style="background:${energyColorVar(energy)}22; color:var(--text);">${c.name}</div>`;
+    }
+    item.innerHTML += `<div class="cn">${c.name}</div>` + (c.rarity ? `<div class="cr">${c.rarity}</div>` : "");
     item.addEventListener("click", ()=>{
-      if(!imgUrl) return;
-      document.getElementById("lightbox-img").src = imgUrl;
+      if(!c.image) return;
+      document.getElementById("lightbox-img").src = c.image;
       document.getElementById("lightbox").classList.add("open");
     });
     grid.appendChild(item);
@@ -463,142 +466,139 @@ document.getElementById("lightbox").addEventListener("click", ()=>{
 /* ---------------- Settings ---------------- */
 function openSettings(){
   document.getElementById("settings-overlay").classList.add("open");
-  ensureLookups();
-  if(state.serieName) document.getElementById("input-serie").value = state.serieName;
-  if(state.serieId) renderSetList(state.serieId, true);
-  renderRarityChecks();
-  renderTrainerChecks();
+  document.getElementById("input-serie").value = db.active || "";
+  document.getElementById("input-cards").value = "";
+  document.getElementById("import-summary").textContent = "";
+  renderSetList();
 }
 function closeSettings(){
   document.getElementById("settings-overlay").classList.remove("open");
 }
 document.getElementById("btn-settings").addEventListener("click", openSettings);
 document.getElementById("cta-open-settings").addEventListener("click", openSettings);
-document.getElementById("btn-close-settings").addEventListener("click", closeSettings);
-document.getElementById("btn-save").addEventListener("click", ()=>{
-  saveState();
+document.getElementById("btn-close-settings").addEventListener("click", ()=>{
+  closeSettings();
   renderHeader();
   renderGridView();
-  closeSettings();
 });
 
-const statusText = (msg)=>{ document.getElementById("status-text").textContent = msg || ""; };
-
-async function ensureLookups(){
-  try{
-    if(!cache.series){ statusText("Chargement des séries…"); cache.series = await fetchJSON(`${API}/series`); }
-    if(!cache.rarities){ cache.rarities = await fetchJSON(`${API}/rarities`); }
-    if(!cache.trainerTypes){ cache.trainerTypes = await fetchJSON(`${API}/trainertypes`); }
-    statusText("");
-  }catch(e){
-    statusText("Connexion à la base de cartes impossible. Vérifie le Wi-Fi.");
-  }
-}
-
-const serieInput = document.getElementById("input-serie");
-const serieSuggest = document.getElementById("serie-suggest");
-serieInput.addEventListener("input", ()=>{
-  const q = serieInput.value.trim().toLowerCase();
-  if(!cache.series || q.length<1){ serieSuggest.classList.remove("show"); return; }
-  const matches = cache.series.filter(s=>s.name.toLowerCase().includes(q)).slice(0,8);
-  serieSuggest.innerHTML = matches.map(s=>`<div class="suggest-item" data-id="${s.id}" data-name="${s.name}">${s.name}</div>`).join("");
-  serieSuggest.classList.toggle("show", matches.length>0);
-});
-serieSuggest.addEventListener("click", (ev)=>{
-  const item = ev.target.closest(".suggest-item");
-  if(!item) return;
-  serieInput.value = item.dataset.name;
-  serieSuggest.classList.remove("show");
-  state.serieId = item.dataset.id;
-  state.serieName = item.dataset.name;
-  state.setId = null; state.setName = null;
-  renderSetList(state.serieId, false);
-});
-
-async function renderSetList(serieId, keepSelection){
-  const field = document.getElementById("field-set");
-  field.style.display = "block";
-  const listEl = document.getElementById("set-list");
-  listEl.innerHTML = "Chargement…";
-  try{
-    if(!cache.serieDetail[serieId]) cache.serieDetail[serieId] = await fetchJSON(`${API}/series/${serieId}`);
-    const sets = cache.serieDetail[serieId].sets || [];
-    listEl.innerHTML = "";
-    sets.forEach(s=>{
-      const chip = document.createElement("div");
-      chip.className = "set-chip" + (keepSelection && state.setId===s.id ? " active" : "");
-      chip.textContent = s.name;
-      chip.addEventListener("click", ()=>{
-        listEl.querySelectorAll(".set-chip").forEach(c=>c.classList.remove("active"));
-        chip.classList.add("active");
-        state.setId = s.id;
-        state.setName = s.name;
-        document.getElementById("field-rarity").style.display = "block";
-        document.getElementById("field-trainer").style.display = "block";
-      });
-      listEl.appendChild(chip);
-    });
-    if(sets.length){
-      document.getElementById("field-rarity").style.display = "block";
-      document.getElementById("field-trainer").style.display = "block";
-    }
-  }catch(e){
-    listEl.innerHTML = "Impossible de charger les sets de cette série.";
-  }
-}
-
-function renderRarityChecks(){
-  const el = document.getElementById("rarity-checks");
-  if(!cache.rarities){ el.innerHTML = ""; return; }
+function renderSetList(){
+  const el = document.getElementById("set-list");
   el.innerHTML = "";
-  cache.rarities.forEach(r=>{
-    const pill = document.createElement("div");
-    const on = state.rarities.includes(r);
-    pill.className = "check-pill" + (on ? " on" : "");
-    pill.textContent = r;
-    pill.addEventListener("click", ()=>{
-      const idx = state.rarities.indexOf(r);
-      if(idx>=0){ state.rarities.splice(idx,1); pill.classList.remove("on"); }
-      else { state.rarities.push(r); pill.classList.add("on"); }
+  Object.keys(db.sets).forEach(name=>{
+    const chip = document.createElement("div");
+    chip.className = "set-chip" + (db.active===name ? " active" : "");
+    chip.innerHTML = `<span>${name} (${db.sets[name].length})</span><span class="del" data-name="${name}">×</span>`;
+    chip.addEventListener("click", (ev)=>{
+      if(ev.target.classList.contains("del")){
+        delete db.sets[name];
+        if(db.active===name) db.active = Object.keys(db.sets)[0] || null;
+        saveDb();
+        renderSetList();
+        document.getElementById("input-serie").value = db.active || "";
+        return;
+      }
+      db.active = name;
+      saveDb();
+      document.getElementById("input-serie").value = name;
+      renderSetList();
     });
-    el.appendChild(pill);
+    el.appendChild(chip);
   });
 }
 
-function renderTrainerChecks(){
-  if(!cache.trainerTypes) return;
-  const dEl = document.getElementById("dresseur-checks");
-  const oEl = document.getElementById("objet-checks");
-  dEl.innerHTML = ""; oEl.innerHTML = "";
+function getSerieNameInput(){
+  return document.getElementById("input-serie").value.trim();
+}
 
-  // Default heuristic on first load: anything containing "objet" goes to Objet, rest to Dresseur.
-  if(state.dresseurTypes.length===0 && state.objetTypes.length===0){
-    cache.trainerTypes.forEach(t=>{
-      if(/objet|item/i.test(t)) state.objetTypes.push(t);
-      else state.dresseurTypes.push(t);
-    });
+function showImportSummary(cards, name, skipped){
+  const counts = countByEnergy(cards);
+  const lines = ENERGIES.map(e=>`${e.label}: ${counts[e.key]}`).join(" · ");
+  let msg = `« ${name} » — ${cards.length} carte(s) au total.<br>${lines}`;
+  if(skipped>0) msg += `<br><span style="color:#ff8a7a;">${skipped} ligne(s) ignorée(s) — énergie non reconnue.</span>`;
+  document.getElementById("import-summary").innerHTML = msg;
+}
+
+document.getElementById("btn-import-replace").addEventListener("click", ()=>{
+  const name = getSerieNameInput();
+  if(!name){ alert("Donne un nom à la série d'abord."); return; }
+  const text = document.getElementById("input-cards").value;
+  const totalLines = text.split("\n").filter(l=>l.trim()).length;
+  const cards = parseCardLines(text);
+  db.sets[name] = cards;
+  db.active = name;
+  saveDb();
+  renderSetList();
+  showImportSummary(cards, name, totalLines - cards.length);
+});
+
+document.getElementById("btn-import-append").addEventListener("click", ()=>{
+  const name = getSerieNameInput();
+  if(!name){ alert("Donne un nom à la série d'abord."); return; }
+  const text = document.getElementById("input-cards").value;
+  const totalLines = text.split("\n").filter(l=>l.trim()).length;
+  const newCards = parseCardLines(text);
+  db.sets[name] = (db.sets[name] || []).concat(newCards);
+  db.active = name;
+  saveDb();
+  renderSetList();
+  showImportSummary(db.sets[name], name, totalLines - newCards.length);
+});
+
+document.getElementById("btn-clear").addEventListener("click", ()=>{
+  const name = getSerieNameInput() || db.active;
+  if(!name || !db.sets[name]) return;
+  if(!confirm(`Vider toutes les cartes de « ${name} » ?`)) return;
+  db.sets[name] = [];
+  saveDb();
+  renderSetList();
+  document.getElementById("import-summary").textContent = "Série vidée.";
+});
+
+/* ---------------- Export / Import ---------------- */
+document.getElementById("btn-export").addEventListener("click", ()=>{
+  document.getElementById("backup-text").value = JSON.stringify(db, null, 0);
+  document.getElementById("backup-status").textContent = "Export généré ci-dessus — copie-le et garde-le quelque part (Notes, Mail, iCloud...).";
+});
+
+document.getElementById("btn-copy").addEventListener("click", async ()=>{
+  const ta = document.getElementById("backup-text");
+  if(!ta.value){ document.getElementById("backup-status").textContent = "Génère d'abord l'export."; return; }
+  ta.select();
+  ta.setSelectionRange(0, ta.value.length);
+  try{
+    await navigator.clipboard.writeText(ta.value);
+    document.getElementById("backup-status").textContent = "Copié dans le presse-papiers.";
+  }catch(e){
+    try{
+      document.execCommand("copy");
+      document.getElementById("backup-status").textContent = "Copié dans le presse-papiers.";
+    }catch(e2){
+      document.getElementById("backup-status").textContent = "Copie automatique indisponible — le texte est sélectionné, utilise le menu Copier de ton appareil.";
+    }
   }
+});
 
-  cache.trainerTypes.forEach(t=>{
-    const mk = (list, container)=>{
-      const pill = document.createElement("div");
-      const on = list.includes(t);
-      pill.className = "check-pill" + (on ? " on" : "");
-      pill.textContent = t;
-      pill.addEventListener("click", ()=>{
-        const idx = list.indexOf(t);
-        if(idx>=0){ list.splice(idx,1); pill.classList.remove("on"); }
-        else { list.push(t); pill.classList.add("on"); }
-      });
-      container.appendChild(pill);
-    };
-    mk(state.dresseurTypes, dEl);
-    mk(state.objetTypes, oEl);
-  });
-}
+document.getElementById("btn-import-backup").addEventListener("click", ()=>{
+  const raw = document.getElementById("backup-text").value.trim();
+  if(!raw){ document.getElementById("backup-status").textContent = "Colle d'abord un export dans la zone ci-dessus."; return; }
+  let parsed;
+  try{ parsed = JSON.parse(raw); }
+  catch(e){ document.getElementById("backup-status").textContent = "Texte invalide — vérifie que c'est bien un export généré par l'appli."; return; }
+  if(!parsed || typeof parsed.sets !== "object"){ document.getElementById("backup-status").textContent = "Format non reconnu."; return; }
+
+  const importedNames = Object.keys(parsed.sets);
+  importedNames.forEach(name=>{ db.sets[name] = parsed.sets[name]; });
+  if(!db.active && parsed.active) db.active = parsed.active;
+  if(!db.active && importedNames.length) db.active = importedNames[0];
+  saveDb();
+  renderSetList();
+  document.getElementById("input-serie").value = db.active || "";
+  document.getElementById("backup-status").textContent = `${importedNames.length} série(s) importée(s) : ${importedNames.join(", ")}.`;
+});
 
 /* ---------------- Init ---------------- */
-loadState();
+loadDb();
 renderHeader();
 renderGridView();
 </script>
