@@ -106,6 +106,15 @@
     text-align:center; padding:10px 12px 2px; font-family:'Rajdhani',sans-serif;
     font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted);
   }
+  .serie-picker{
+    display:flex; gap:8px; padding:12px 16px 0; overflow-x:auto; flex:0 0 auto;
+  }
+  .serie-chip{
+    flex:0 0 auto; padding:8px 14px; border-radius:20px; border:1px solid var(--line);
+    background:var(--panel); color:var(--muted); font-size:13px; font-family:'Rajdhani',sans-serif;
+    font-weight:600; cursor:pointer; white-space:nowrap;
+  }
+  .serie-chip.on{background:var(--gold); color:#1a1200; border-color:var(--gold);}
   .energy-grid{
     flex:1; display:grid; gap:12px; padding:12px 16px 18px;
     grid-template-columns:repeat(4, 1fr); grid-template-rows:repeat(3, 1fr);
@@ -276,9 +285,14 @@
       <button class="cta" id="cta-open-settings">Ouvrir les réglages</button>
     </div>
     <template id="tpl-grid">
+      <div class="serie-picker" id="serie-picker"></div>
       <div class="grid-title" id="grid-title">Tirage en cours — touche une énergie</div>
       <div class="energy-grid" id="energy-grid"></div>
     </template>
+    <div class="config-prompt" id="no-active-prompt" style="display:none;">
+      <h2>Sélectionne une série</h2>
+      <p>Touche une ou plusieurs séries ci-dessus pour les inclure dans le tirage.</p>
+    </div>
   </div>
 
   <aside id="history-panel">
@@ -389,8 +403,9 @@ const ENERGIES = [
   {key:"objet", label:"Objet", cls:"t-objet"},
 ];
 
-let db = { sets:{}, active:null, history:{} };
+let db = { sets:{}, activeSeries:[], history:[] };
 let historyOpen = true;
+let editingSerie = null;
 
 function normalizeStr(s){
   return (s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
@@ -401,8 +416,17 @@ ENERGIES.forEach(e => ENERGY_KEY_BY_NORM[normalizeStr(e.label)] = e.key);
 function loadDb(){
   try{
     const raw = localStorage.getItem("jde-db");
-    if(raw) db = Object.assign({ sets:{}, active:null, history:{} }, JSON.parse(raw));
-    if(!db.history) db.history = {};
+    if(raw){
+      const parsed = JSON.parse(raw);
+      db = Object.assign({ sets:{}, activeSeries:[], history:[] }, parsed);
+      // Migration depuis l'ancien format (une seule série active, historique par série)
+      if(!Array.isArray(db.activeSeries)){
+        db.activeSeries = parsed.active ? [parsed.active] : [];
+      }
+      if(!Array.isArray(db.history)){
+        db.history = parsed.history ? Object.values(parsed.history).flat() : [];
+      }
+    }
   }catch(e){}
 }
 function saveDb(){
@@ -425,15 +449,23 @@ function parseCardLines(text){
 }
 
 function currentCards(){
-  if(!db.active || !db.sets[db.active]) return [];
-  return db.sets[db.active];
+  let all = [];
+  (db.activeSeries||[]).forEach(name=>{
+    if(db.sets[name]) all = all.concat(db.sets[name]);
+  });
+  return all;
 }
 
 /* ---------------- Header / grid ---------------- */
 function renderHeader(){
-  document.getElementById("hdr-set").textContent = db.active || "Aucune série configurée";
+  const active = db.activeSeries||[];
+  let label;
+  if(active.length===0) label = "Aucune série sélectionnée";
+  else if(active.length===1) label = active[0];
+  else label = active.length + " séries actives";
+  document.getElementById("hdr-set").textContent = label;
   const n = currentCards().length;
-  document.getElementById("hdr-serie").textContent = db.active ? `${n} carte${n>1?"s":""} · Jeu de l'Énergie` : "Zone 151 TCG · Jeu de l'Énergie";
+  document.getElementById("hdr-serie").textContent = active.length ? `${n} carte${n>1?"s":""} · Jeu de l'Énergie` : "Zone 151 TCG · Jeu de l'Énergie";
 }
 
 function countByEnergy(cards){
@@ -446,16 +478,46 @@ function countByEnergy(cards){
 function renderGridView(){
   const promptEl = document.getElementById("config-prompt");
   const gridView = document.getElementById("grid-view");
-  gridView.querySelectorAll(".grid-title, .energy-grid").forEach(n=>n.remove());
+  gridView.querySelectorAll(".serie-picker, .grid-title, .energy-grid").forEach(n=>n.remove());
+  const noActiveEl = document.getElementById("no-active-prompt");
 
-  const cards = currentCards();
-  if(!db.active || cards.length===0){
+  const allSerieNames = Object.keys(db.sets);
+  if(allSerieNames.length === 0){
     promptEl.style.display = "flex";
+    noActiveEl.style.display = "none";
     return;
   }
   promptEl.style.display = "none";
+
   const tpl = document.getElementById("tpl-grid").content.cloneNode(true);
-  gridView.appendChild(tpl);
+  gridView.insertBefore(tpl, noActiveEl);
+
+  const picker = document.getElementById("serie-picker");
+  allSerieNames.forEach(name=>{
+    const chip = document.createElement("div");
+    const on = (db.activeSeries||[]).includes(name);
+    chip.className = "serie-chip" + (on ? " on" : "");
+    chip.textContent = `${name} (${db.sets[name].length})`;
+    chip.addEventListener("click", ()=>{
+      const idx = db.activeSeries.indexOf(name);
+      if(idx>=0) db.activeSeries.splice(idx,1);
+      else db.activeSeries.push(name);
+      saveDb();
+      renderHeader();
+      renderGridView();
+      renderHistoryPanel();
+    });
+    picker.appendChild(chip);
+  });
+
+  const cards = currentCards();
+  if((db.activeSeries||[]).length === 0){
+    document.getElementById("grid-title").style.display = "none";
+    document.getElementById("energy-grid").style.display = "none";
+    noActiveEl.style.display = "flex";
+    return;
+  }
+  noActiveEl.style.display = "none";
   const grid = document.getElementById("energy-grid");
   const counts = countByEnergy(cards);
   ENERGIES.forEach(e=>{
@@ -514,16 +576,13 @@ function openAssignPrompt(energy){
 }
 
 function recordAssignment(buyer, energy){
-  if(!db.active) return;
-  if(!db.history[db.active]) db.history[db.active] = [];
-  db.history[db.active].push({ buyer, energyKey: energy.key, ts: Date.now() });
+  db.history.push({ buyer, energyKey: energy.key, ts: Date.now() });
   saveDb();
   renderHistoryPanel();
 }
 
 function currentHistory(){
-  if(!db.active || !db.history[db.active]) return [];
-  return db.history[db.active];
+  return db.history || [];
 }
 
 function renderHistoryPanel(){
@@ -556,9 +615,9 @@ document.getElementById("btn-history").addEventListener("click", ()=>{
 });
 
 document.getElementById("btn-clear-history").addEventListener("click", ()=>{
-  if(!db.active) return;
-  if(!confirm("Vider l'historique des tirages de cette série ?")) return;
-  db.history[db.active] = [];
+  if(!db.history.length) return;
+  if(!confirm("Vider tout l'historique des tirages ?")) return;
+  db.history = [];
   saveDb();
   renderHistoryPanel();
 });
@@ -614,7 +673,7 @@ document.getElementById("lightbox").addEventListener("click", ()=>{
 /* ---------------- Settings ---------------- */
 function openSettings(){
   document.getElementById("settings-overlay").classList.add("open");
-  document.getElementById("input-serie").value = db.active || "";
+  document.getElementById("input-serie").value = editingSerie || "";
   document.getElementById("input-cards").value = "";
   document.getElementById("import-summary").textContent = "";
   renderSetList();
@@ -636,22 +695,25 @@ function renderSetList(){
   el.innerHTML = "";
   Object.keys(db.sets).forEach(name=>{
     const chip = document.createElement("div");
-    chip.className = "set-chip" + (db.active===name ? " active" : "");
+    chip.className = "set-chip" + (editingSerie===name ? " active" : "");
     chip.innerHTML = `<span>${name} (${db.sets[name].length})</span><span class="del" data-name="${name}">×</span>`;
     chip.addEventListener("click", (ev)=>{
       if(ev.target.classList.contains("del")){
         delete db.sets[name];
-        if(db.active===name) db.active = Object.keys(db.sets)[0] || null;
+        const idx = db.activeSeries.indexOf(name);
+        if(idx>=0) db.activeSeries.splice(idx,1);
+        if(editingSerie===name) editingSerie = Object.keys(db.sets)[0] || null;
         saveDb();
         renderSetList();
-        document.getElementById("input-serie").value = db.active || "";
+        document.getElementById("input-serie").value = editingSerie || "";
+        renderHeader();
+        renderGridView();
+        renderHistoryPanel();
         return;
       }
-      db.active = name;
-      saveDb();
+      editingSerie = name;
       document.getElementById("input-serie").value = name;
       renderSetList();
-      renderHistoryPanel();
     });
     el.appendChild(chip);
   });
@@ -661,10 +723,14 @@ function getSerieNameInput(){
   return document.getElementById("input-serie").value.trim();
 }
 
+function activateSerie(name){
+  if(!db.activeSeries.includes(name)) db.activeSeries.push(name);
+}
+
 function showImportSummary(cards, name, skipped){
   const counts = countByEnergy(cards);
   const lines = ENERGIES.map(e=>`${e.label}: ${counts[e.key]}`).join(" · ");
-  let msg = `« ${name} » — ${cards.length} carte(s) au total.<br>${lines}`;
+  let msg = `« ${name} » — ${cards.length} carte(s) au total. Ajoutée aux séries actives.<br>${lines}`;
   if(skipped>0) msg += `<br><span style="color:#ff8a7a;">${skipped} ligne(s) ignorée(s) — énergie non reconnue.</span>`;
   document.getElementById("import-summary").innerHTML = msg;
 }
@@ -676,9 +742,12 @@ document.getElementById("btn-import-replace").addEventListener("click", ()=>{
   const totalLines = text.split("\n").filter(l=>l.trim()).length;
   const cards = parseCardLines(text);
   db.sets[name] = cards;
-  db.active = name;
+  editingSerie = name;
+  activateSerie(name);
   saveDb();
   renderSetList();
+  renderHeader();
+  renderGridView();
   renderHistoryPanel();
   showImportSummary(cards, name, totalLines - cards.length);
 });
@@ -690,20 +759,25 @@ document.getElementById("btn-import-append").addEventListener("click", ()=>{
   const totalLines = text.split("\n").filter(l=>l.trim()).length;
   const newCards = parseCardLines(text);
   db.sets[name] = (db.sets[name] || []).concat(newCards);
-  db.active = name;
+  editingSerie = name;
+  activateSerie(name);
   saveDb();
   renderSetList();
+  renderHeader();
+  renderGridView();
   renderHistoryPanel();
   showImportSummary(db.sets[name], name, totalLines - newCards.length);
 });
 
 document.getElementById("btn-clear").addEventListener("click", ()=>{
-  const name = getSerieNameInput() || db.active;
+  const name = getSerieNameInput() || editingSerie;
   if(!name || !db.sets[name]) return;
   if(!confirm(`Vider toutes les cartes de « ${name} » ?`)) return;
   db.sets[name] = [];
   saveDb();
   renderSetList();
+  renderHeader();
+  renderGridView();
   document.getElementById("import-summary").textContent = "Série vidée.";
 });
 
@@ -741,11 +815,20 @@ document.getElementById("btn-import-backup").addEventListener("click", ()=>{
 
   const importedNames = Object.keys(parsed.sets);
   importedNames.forEach(name=>{ db.sets[name] = parsed.sets[name]; });
-  if(!db.active && parsed.active) db.active = parsed.active;
-  if(!db.active && importedNames.length) db.active = importedNames[0];
+
+  const importedActive = Array.isArray(parsed.activeSeries) ? parsed.activeSeries : (parsed.active ? [parsed.active] : []);
+  importedActive.forEach(name=>{ if(!db.activeSeries.includes(name)) db.activeSeries.push(name); });
+
+  const importedHistory = Array.isArray(parsed.history) ? parsed.history : (parsed.history ? Object.values(parsed.history).flat() : []);
+  db.history = (db.history||[]).concat(importedHistory);
+
+  editingSerie = importedNames[0] || editingSerie;
   saveDb();
   renderSetList();
-  document.getElementById("input-serie").value = db.active || "";
+  renderHeader();
+  renderGridView();
+  renderHistoryPanel();
+  document.getElementById("input-serie").value = editingSerie || "";
   document.getElementById("backup-status").textContent = `${importedNames.length} série(s) importée(s) : ${importedNames.join(", ")}.`;
 });
 
