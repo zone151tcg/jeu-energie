@@ -305,6 +305,17 @@
   .mode-toggle .btn.on{background:var(--gold); color:#1a1200; border-color:var(--gold);}
 
   /* ---------------- Assign overlay ---------------- */
+  #action-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:38; display:none;
+    align-items:center; justify-content:center; padding:24px;
+  }
+  #action-overlay.open{display:flex;}
+  #action-box{
+    width:100%; max-width:340px; background:var(--panel); border:1px solid var(--line); border-radius:18px;
+    padding:22px 20px; text-align:center;
+  }
+  #action-box .chip{display:inline-block; padding:6px 16px; border-radius:20px; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:16px; margin-bottom:16px;}
+
   #assign-overlay{
     position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:40; display:none;
     align-items:center; justify-content:center; padding:24px;
@@ -442,6 +453,17 @@
       <div class="chip" id="tier-chip"></div>
       <div class="tier-list" id="tier-list"></div>
       <button class="btn" id="tier-cancel">Annuler</button>
+    </div>
+  </div>
+
+  <div id="action-overlay">
+    <div id="action-box">
+      <div class="chip" id="action-chip"></div>
+      <div class="btn-row" style="flex-direction:column;">
+        <button class="btn primary" id="action-view" style="width:100%;">Voir les cartes</button>
+        <button class="btn primary" id="action-assign" style="width:100%;">Assigner un acheteur</button>
+        <button class="btn" id="action-cancel" style="width:100%;">Annuler</button>
+      </div>
     </div>
   </div>
 
@@ -776,13 +798,48 @@ function energyColorVar(e){
   return getComputedStyle(document.documentElement).getPropertyValue(map[e.key]).trim();
 }
 
+function categoryColorVar(category){
+  return getComputedStyle(document.documentElement).getPropertyValue(
+    {feu:"--feu",eau:"--eau",plante:"--plante",electrik:"--electrik",psy:"--psy",combat:"--combat",acier:"--acier",obscur:"--obscur",dragon:"--dragon",incolore:"--incolore",dresseur:"--dresseur",objet:"--objet"}[category.energyKey]
+  ).trim();
+}
+
+function openActionChoice(category){
+  const overlay = document.getElementById("action-overlay");
+  const chip = document.getElementById("action-chip");
+  chip.textContent = category.label;
+  const colorVar = categoryColorVar(category);
+  chip.style.background = colorVar + "33";
+  chip.style.color = "var(--text)";
+  chip.style.border = "1px solid " + colorVar;
+  overlay.classList.add("open");
+
+  const viewBtn = document.getElementById("action-view");
+  const assignBtn = document.getElementById("action-assign");
+  const cancelBtn = document.getElementById("action-cancel");
+
+  function cleanup(){
+    overlay.classList.remove("open");
+    viewBtn.removeEventListener("click", onView);
+    assignBtn.removeEventListener("click", onAssign);
+    cancelBtn.removeEventListener("click", onCancel);
+  }
+  const onView = ()=>{ cleanup(); openGallery(category); };
+  const onAssign = ()=>{ cleanup(); openAssignPrompt(category); };
+  const onCancel = ()=>{ cleanup(); };
+
+  viewBtn.addEventListener("click", onView);
+  assignBtn.addEventListener("click", onAssign);
+  cancelBtn.addEventListener("click", onCancel);
+}
+
 function onTileTap(tileEl, energy){
   tileEl.classList.add("burst");
   setTimeout(()=>tileEl.classList.remove("burst"), 600);
   if(db.mode === "premium" && energy.tiers){
     openTierPicker(energy);
   } else {
-    openAssignPrompt(categoryFor(energy, null));
+    openActionChoice(categoryFor(energy, null));
   }
 }
 
@@ -802,7 +859,7 @@ function openTierPicker(energy){
     opt.innerHTML = `<span>${tier.label}</span><span class="n">${n} carte${n>1?"s":""}</span>`;
     opt.addEventListener("click", ()=>{
       overlay.classList.remove("open");
-      openAssignPrompt(categoryFor(energy, tier));
+      openActionChoice(categoryFor(energy, tier));
     });
     list.appendChild(opt);
   });
