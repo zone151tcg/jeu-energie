@@ -88,8 +88,8 @@
     font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted);
   }
   .serie-picker{
-    display:flex; gap:8px; padding:12px 16px 0; overflow-x:auto; flex:0 0 auto;
-    -webkit-overflow-scrolling:touch; touch-action:pan-x;
+    display:flex; flex-wrap:wrap; gap:8px; padding:10px 16px 0; flex:0 0 auto;
+    max-height:96px; overflow-y:auto; -webkit-overflow-scrolling:touch;
   }
   .serie-chip{
     flex:0 0 auto; padding:8px 14px; border-radius:20px; border:1px solid var(--line);
