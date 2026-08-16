@@ -225,7 +225,20 @@
     align-items:center; justify-content:center; padding:30px;
   }
   #lightbox.open{display:flex;}
-  #lightbox img{max-width:90%; max-height:90%; border-radius:14px; box-shadow:0 20px 60px rgba(0,0,0,.6);}
+  #lightbox img{max-width:78%; max-height:88%; border-radius:14px; box-shadow:0 20px 60px rgba(0,0,0,.6);}
+  .lightbox-nav{
+    position:absolute; top:50%; transform:translateY(-50%); width:52px; height:52px; border-radius:50%;
+    background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); color:#fff;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:2;
+  }
+  .lightbox-nav:active{transform:translateY(-50%) scale(.92);}
+  #lightbox-prev{left:14px;}
+  #lightbox-next{right:14px;}
+  #lightbox-count{
+    position:absolute; bottom:22px; left:50%; transform:translateX(-50%);
+    font-family:'Rajdhani',sans-serif; font-size:13px; letter-spacing:.05em; color:var(--muted);
+    background:rgba(0,0,0,0.4); padding:5px 14px; border-radius:20px;
+  }
 
   /* ---------------- Config prompt ---------------- */
   .config-prompt{
@@ -515,7 +528,16 @@
     <div class="recap-body" id="recap-body"></div>
   </div>
 
-  <div id="lightbox"><img id="lightbox-img" src="" alt=""></div>
+  <div id="lightbox">
+    <button id="lightbox-prev" class="lightbox-nav" aria-label="Précédent">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+    </button>
+    <img id="lightbox-img" src="" alt="">
+    <button id="lightbox-next" class="lightbox-nav" aria-label="Suivant">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg>
+    </button>
+    <div id="lightbox-count"></div>
+  </div>
 
   <div id="settings-overlay">
     <div id="settings">
@@ -1076,6 +1098,19 @@ function openGallery(category){
   view.classList.add("open");
 }
 
+let lightboxCards = [];
+let lightboxIndex = -1;
+
+function showLightboxAt(index){
+  if(!lightboxCards.length) return;
+  lightboxIndex = (index + lightboxCards.length) % lightboxCards.length;
+  document.getElementById("lightbox-img").src = lightboxCards[lightboxIndex].image;
+  document.getElementById("lightbox-count").textContent = `${lightboxIndex+1} / ${lightboxCards.length}`;
+  const multi = lightboxCards.length > 1;
+  document.getElementById("lightbox-prev").style.display = multi ? "flex" : "none";
+  document.getElementById("lightbox-next").style.display = multi ? "flex" : "none";
+}
+
 function renderGalleryCards(cards, category){
   const body = document.getElementById("gallery-body");
   if(!cards.length){
@@ -1087,6 +1122,7 @@ function renderGalleryCards(cards, category){
   }
   const grid = document.createElement("div");
   grid.className = "card-grid";
+  const withImages = cards.filter(c=>c.image);
   cards.forEach(c=>{
     const item = document.createElement("div");
     item.className = "card-item";
@@ -1098,7 +1134,8 @@ function renderGalleryCards(cards, category){
     item.innerHTML += `<div class="cn">${c.name}</div>` + (c.rarity ? `<div class="cr">${c.rarity}</div>` : "");
     item.addEventListener("click", ()=>{
       if(!c.image) return;
-      document.getElementById("lightbox-img").src = c.image;
+      lightboxCards = withImages;
+      showLightboxAt(withImages.indexOf(c));
       document.getElementById("lightbox").classList.add("open");
     });
     grid.appendChild(item);
@@ -1110,8 +1147,18 @@ function renderGalleryCards(cards, category){
 document.getElementById("btn-back").addEventListener("click", ()=>{
   document.getElementById("gallery-view").classList.remove("open");
 });
-document.getElementById("lightbox").addEventListener("click", ()=>{
-  document.getElementById("lightbox").classList.remove("open");
+document.getElementById("lightbox").addEventListener("click", (ev)=>{
+  if(ev.target.id === "lightbox"){
+    document.getElementById("lightbox").classList.remove("open");
+  }
+});
+document.getElementById("lightbox-prev").addEventListener("click", (ev)=>{
+  ev.stopPropagation();
+  showLightboxAt(lightboxIndex - 1);
+});
+document.getElementById("lightbox-next").addEventListener("click", (ev)=>{
+  ev.stopPropagation();
+  showLightboxAt(lightboxIndex + 1);
 });
 
 /* ---------------- Mode gate ---------------- */
